@@ -1,0 +1,31 @@
+name: Cross-Account Sync to ishuD26
+
+on:
+  push:
+    branches:
+      - '**' 
+  tags:
+    - '**'   
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Primary Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Mirror to Secondary Account
+        env:
+          DESTINATION_REPO: "github.com/ishuD26/esy.git"
+          DESTINATION_PAT: ${{ secrets.DESTINATION_PAT }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          git remote add mirror https://oauth2:${DESTINATION_PAT}@${DESTINATION_REPO}
+          
+          git push mirror "refs/remotes/origin/*:refs/heads/*" --force --prune
+          git push mirror --tags --force
