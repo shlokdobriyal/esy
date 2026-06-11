@@ -22,9 +22,9 @@ jobs:
           DESTINATION_REPO: "github.com/ishuD26/esy.git"
           DESTINATION_PAT: ${{ secrets.DESTINATION_PAT }}
         run: |
-          
-          git remote add mirror https://oauth2:${DESTINATION_PAT}@${DESTINATION_REPO}
-          
-          git remote add mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO}
+
+          # If 'mirror' already exists, change its URL. Otherwise, add it.
+          git remote set-url mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO} 2>/dev/null || git remote add mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO}
+        
           git push mirror --prune --force --all
           git push mirror --prune --force --tags
