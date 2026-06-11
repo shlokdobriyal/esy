@@ -22,10 +22,21 @@ jobs:
           git config --global user.name "Sync Bot"
           git config --global user.email "sync-bot@example.com"
 
+      - name: Verify Secret Exists
+        env:
+          TOKEN: ${{ github.repository == 'shlokdobriyal/esy' && secrets.DESTINATION_PAT || secrets.PRIMARY_ACCOUNT_PAT }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "TOKEN IS EMPTY"
+            exit 1
+          else
+            echo "TOKEN FOUND"
+          fi
+
       - name: Sync shlokdobriyal -> ishuD26
         if: github.repository == 'shlokdobriyal/esy'
         env:
-          TOKEN: ${{ secrets.SECONDARY_ACCOUNT_PAT }}
+          TOKEN: ${{ secrets.DESTINATION_PAT }}
         run: |
           git remote add target https://x-access-token:${TOKEN}@github.com/ishuD26/esy.git || true
           git remote set-url target https://x-access-token:${TOKEN}@github.com/ishuD26/esy.git
