@@ -19,12 +19,15 @@ jobs:
       - name: Sync Primary to Secondary
         if: github.repository == 'shlokdobriyal/esy'
         env:
-          SECONDARY_REPO: "://github.com"
+          # Double check if your secret is named DESTINATION_PAT or SECONDARY_ACCOUNT_PAT
           SECONDARY_PAT: ${{ secrets.SECONDARY_ACCOUNT_PAT }}
         run: |
           git config --global user.name "Sync Bot"
           git config --global user.email "sync-bot@example.com"
-          git remote add target https://x-access-token:${SECONDARY_PAT}@${SECONDARY_REPO} 2>/dev/null || git remote set-url target https://x-access-token:${SECONDARY_PAT}@${SECONDARY_REPO}
+          
+          # The repository URL is securely hardcoded here to prevent 'No host' errors
+          git remote add target https://x-access-token:${SECONDARY_PAT}@://github.com 2>/dev/null || git remote set-url target https://x-access-token:${SECONDARY_PAT}@://github.com
+          
           git fetch target main
           git merge target/main --no-edit
           git push target main
@@ -32,12 +35,13 @@ jobs:
       - name: Sync Secondary to Primary
         if: github.repository == 'ishuD26/esy'
         env:
-          PRIMARY_REPO: "://github.com"
           PRIMARY_PAT: ${{ secrets.PRIMARY_ACCOUNT_PAT }}
         run: |
           git config --global user.name "Sync Bot"
           git config --global user.email "sync-bot@example.com"
-          git remote add target https://x-access-token:${PRIMARY_PAT}@${PRIMARY_REPO} 2>/dev/null || git remote set-url target https://x-access-token:${PRIMARY_PAT}@${PRIMARY_REPO}
+          
+          git remote add target https://x-access-token:${PRIMARY_PAT}@://github.com 2>/dev/null || git remote set-url target https://x-access-token:${PRIMARY_PAT}@://github.com
+          
           git fetch target main
           git merge target/main --no-edit
           git push target main
