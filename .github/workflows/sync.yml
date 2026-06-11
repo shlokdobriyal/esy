@@ -16,17 +16,18 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # RUN THIS PART ONLY IF WE ARE ON THE PRIMARY ACCOUNT
-       if: github.repository == 'shlokdobriyal/esy'
       - name: Sync Primary to Secondary
+        if: github.repository == 'shlokdobriyal/esy'
         env:
           SECONDARY_REPO: "://github.com"
           SECONDARY_PAT: ${{ secrets.SECONDARY_ACCOUNT_PAT }}
         run: |
           git config --global user.name "Sync Bot"
           git config --global user.email "sync-bot@example.com"
-          git remote add target https://x-access-token:${SECONDARY_PAT}@${SECONDARY_REPO}
+          git remote add target https://x-access-token:${SECONDARY_PAT}@${SECONDARY_REPO} 2>/dev/null || git remote set-url target https://x-access-token:${SECONDARY_PAT}@${SECONDARY_REPO}
           git fetch target main
+          git merge target/main --no-edit
+          git push target main
           git merge target/main --no-edit
           git push target main
 
