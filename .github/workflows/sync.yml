@@ -1,30 +1,45 @@
-name: Cross-Account Sync to ishuD26
+name: Two-Way Cross-Account Sync
 
 on:
   push:
     branches:
-      - '**' 
-    tags:
-      - '**'   
+      - main  # Change to master if that is your branch name
 
 jobs:
-  mirror:
+  sync:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Primary Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # This line prevents the default bot token from overriding your PAT
-          persist-credentials: false 
+          persist-credentials: false
 
-      - name: Mirror to Secondary Account
+      # RUN THIS PART ONLY IF WE ARE ON THE PRIMARY ACCOUNT
+       if: github.repository == 'shlokdobriyal/esy'
+      - name: Sync Primary to Secondary
         env:
-          DESTINATION_REPO: "github.com/ishuD26/esy.git"
-          DESTINATION_PAT: ${{ secrets.DESTINATION_PAT }}
+          SECONDARY_REPO: "://github.com"
+          SECONDARY_PAT: ${{ secrets.SECONDARY_ACCOUNT_PAT }}
         run: |
-          git remote add mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO} 2>/dev/null || git remote set-url mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO}
-          
-          git push mirror --prune --force --all
-          git push mirror --prune --force --tags
+          git config --global user.name "Sync Bot"
+          git config --global user.email "sync-bot@example.com"
+          git remote add target https://x-access-token:${SECONDARY_PAT}@${SECONDARY_REPO}
+          git fetch target main
+          git merge target/main --no-edit
+          git push target main
+
+      # RUN THIS PART ONLY IF WE ARE ON THE SECONDARY ACCOUNT
+       if: github.repository == 'ishuD26/esy'
+      - name: Sync Secondary to Primary
+        env:
+          PRIMARY_REPO: "://github.com"
+          PRIMARY_PAT: ${{ secrets.PRIMARY_ACCOUNT_PAT }}
+        run: |
+          git config --global user.name "Sync Bot"
+          git config --global user.email "sync-bot@example.com"
+          git remote add target https://x-access-token:${PRIMARY_PAT}@${PRIMARY_REPO}
+          git fetch target main
+          git merge target/main --no-edit
+          git push target main
