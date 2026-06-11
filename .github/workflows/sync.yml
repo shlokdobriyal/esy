@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - '**' 
-    tags:
-      - '**'   
+  tags:
+    - '**'   
 
 jobs:
   mirror:
@@ -15,16 +15,16 @@ jobs:
       - name: Checkout Primary Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
+          # This line prevents the default bot token from overriding your PAT
+          persist-credentials: false 
 
       - name: Mirror to Secondary Account
         env:
           DESTINATION_REPO: "github.com/ishuD26/esy.git"
           DESTINATION_PAT: ${{ secrets.DESTINATION_PAT }}
         run: |
-
-          # If 'mirror' already exists, change its URL. Otherwise, add it.
-          git remote set-url mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO} 2>/dev/null || git remote add mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO}
-        
+          git remote add mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO} 2>/dev/null || git remote set-url mirror https://x-access-token:${DESTINATION_PAT}@${DESTINATION_REPO}
+          
           git push mirror --prune --force --all
           git push mirror --prune --force --tags
