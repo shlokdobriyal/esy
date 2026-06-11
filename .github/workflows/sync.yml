@@ -1,9 +1,10 @@
-name: Two-Way Cross-Account Sync
+name: Two-way Cross-Account Sync
 
 on:
   push:
     branches:
-      - main  # Change to master if that is your branch name
+      - main
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -27,19 +28,16 @@ jobs:
           git fetch target main
           git merge target/main --no-edit
           git push target main
-          git merge target/main --no-edit
-          git push target main
 
-      # RUN THIS PART ONLY IF WE ARE ON THE SECONDARY ACCOUNT
-       if: github.repository == 'ishuD26/esy'
       - name: Sync Secondary to Primary
+        if: github.repository == 'ishuD26/esy'
         env:
           PRIMARY_REPO: "://github.com"
           PRIMARY_PAT: ${{ secrets.PRIMARY_ACCOUNT_PAT }}
         run: |
           git config --global user.name "Sync Bot"
           git config --global user.email "sync-bot@example.com"
-          git remote add target https://x-access-token:${PRIMARY_PAT}@${PRIMARY_REPO}
+          git remote add target https://x-access-token:${PRIMARY_PAT}@${PRIMARY_REPO} 2>/dev/null || git remote set-url target https://x-access-token:${PRIMARY_PAT}@${PRIMARY_REPO}
           git fetch target main
           git merge target/main --no-edit
           git push target main
