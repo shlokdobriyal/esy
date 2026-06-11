@@ -1,4 +1,4 @@
-name: Two-way Cross-Account Sync
+name: Two-Way Cross-Account Sync
 
 on:
   push:
@@ -7,8 +7,9 @@ on:
 
 jobs:
   sync:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -16,32 +17,25 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Sync Primary to Secondary
+      - name: Configure Git
+        run: |
+          git config --global user.name "Sync Bot"
+          git config --global user.email "sync-bot@example.com"
+
+      - name: Sync shlokdobriyal -> ishuD26
         if: github.repository == 'shlokdobriyal/esy'
         env:
-          # Double check if your secret is named DESTINATION_PAT or SECONDARY_ACCOUNT_PAT
-          SECONDARY_PAT: ${{ secrets.SECONDARY_ACCOUNT_PAT }}
+          TOKEN: ${{ secrets.SECONDARY_ACCOUNT_PAT }}
         run: |
-          git config --global user.name "Sync Bot"
-          git config --global user.email "sync-bot@example.com"
-          
-          # The repository URL is securely hardcoded here to prevent 'No host' errors
-          git remote add target https://x-access-token:${SECONDARY_PAT}@://github.com 2>/dev/null || git remote set-url target https://x-access-token:${SECONDARY_PAT}@://github.com
-          
-          git fetch target main
-          git merge target/main --no-edit
-          git push target main
+          git remote add target https://x-access-token:${TOKEN}@github.com/ishuD26/esy.git || true
+          git remote set-url target https://x-access-token:${TOKEN}@github.com/ishuD26/esy.git
+          git push --mirror target
 
-      - name: Sync Secondary to Primary
+      - name: Sync ishuD26 -> shlokdobriyal
         if: github.repository == 'ishuD26/esy'
         env:
-          PRIMARY_PAT: ${{ secrets.PRIMARY_ACCOUNT_PAT }}
+          TOKEN: ${{ secrets.PRIMARY_ACCOUNT_PAT }}
         run: |
-          git config --global user.name "Sync Bot"
-          git config --global user.email "sync-bot@example.com"
-          
-          git remote add target https://x-access-token:${PRIMARY_PAT}@://github.com 2>/dev/null || git remote set-url target https://x-access-token:${PRIMARY_PAT}@://github.com
-          
-          git fetch target main
-          git merge target/main --no-edit
-          git push target main
+          git remote add target https://x-access-token:${TOKEN}@github.com/shlokdobriyal/esy.git || true
+          git remote set-url target https://x-access-token:${TOKEN}@github.com/shlokdobriyal/esy.git
+          git push --mirror target
